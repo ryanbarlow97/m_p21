@@ -3,16 +3,7 @@
 %* Initial Author: Ryan Barlow
 %* Initial Creation Date: 10-Sep-2024
 %* Purpose: To allow for auto running of the p21
-%* Notes:
-%*
-%* -------------------------------------------------------------
-%* Version Information ------[do not edit the lines below]------
-%* 
-$Date: 2025-04-25 12:44:26 +0100 (Fri, 25 Apr 2025) $
-$URL: https://sascompute.macukneuroscience.local:8443/svn/MAC000/Multiple/m_p21.sas $
-$Author: rbarlow $
-%*
-%***************************************************************;
+
 %macro m_p21(help,
              domain=, 
              library=, 
