@@ -213,16 +213,6 @@
   %*--- temp work path;
   %let work_path = %sysfunc(getoption(work));
 
-
-  %*--- sleep SAS to allow the temp folder to be created;
-/*  data _null_;*/
-/*    x = sleep(3);*/
-/*  run;*/
-
-  %*--- make temp xpt location in tempfiles;
-  /*x mkdir "&work_path\xpt";*/
-
-
   %* Fix global variables to match intended - or .;
   %let sdtm_ig2 = %sysfunc(tranwrd(&sdtm_ig, _, .));
   %let sdtm_ct2 = %sysfunc(tranwrd(&sdtm_ct, _, -));
@@ -264,7 +254,6 @@
       %put WARN%STR(ING:) [%upcase(&sysmacroname.)] The specified Controlled Terminology "&adam_ct2." does not exist in the folder "&adam_ct2_path.", please add to the remote desktop.;
       %return;
   %end;
-
 
   %* List of datasets to process;
   %let datasets = &domain. supp&domain.;
@@ -371,7 +360,6 @@
              d = severity
              e = count;
     run;
-
 
     %if %upcase(%substr(&library., %length(&library.))) = Q %then %do;
     data &library.21.&domain.;
