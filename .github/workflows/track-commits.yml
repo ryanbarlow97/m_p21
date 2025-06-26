@@ -29,16 +29,8 @@ jobs:
             sqlite3 "$DB" "CREATE TABLE commits (sha TEXT PRIMARY KEY, author TEXT, email TEXT, timestamp TEXT, files TEXT);"
           fi
 
-          sqlite3 "$DB" <<EOF
-INSERT OR IGNORE INTO commits (sha, author, email, timestamp, files)
-VALUES (
-  '$SHA',
-  '$AUTHOR',
-  '$EMAIL',
-  '$DATE',
-  '$FILES'
-);
-EOF
+          sqlite3 "$DB" "INSERT OR IGNORE INTO commits (sha, author, email, timestamp, files) \
+                         VALUES ('$SHA', '$AUTHOR', '$EMAIL', '$DATE', '$FILES');"
 
       - name: Commit updated SQLite file
         run: |
