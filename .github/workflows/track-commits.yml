@@ -1,0 +1,49 @@
+name: Track Commits to SQLite
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  log_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install SQLite
+        run: sudo apt-get install sqlite3 -y
+
+      - name: Extract commit info and update database
+        run: |
+          DB=commits_log.sqlite
+          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | paste -sd ";" -)
+          AUTHOR=$(git log -1 --format="%an")
+          EMAIL=$(git log -1 --format="%ae")
+          DATE=$(git log -1 --format="%ad" --date=iso)
+          SHA=$(git rev-parse HEAD)
+
+          if [ ! -f "$DB" ]; then
+            sqlite3 $DB "CREATE TABLE commits (sha TEXT PRIMARY KEY, author TEXT, email TEXT, timestamp TEXT, files TEXT);"
+          fi
+
+          sqlite3 $DB <<EOF
+INSERT OR IGNORE INTO commits (sha, author, email, timestamp, files)
+VALUES (
+  '$SHA',
+  '$AUTHOR',
+  '$EMAIL',
+  '$DATE',
+  '$FILES'
+);
+EOF
+
+      - name: Commit updated SQLite file
+        run: |
+          git config user.name "auto-tracker"
+          git config user.email "tracker@yourorg.com"
+          git add commits_log.sqlite
+          git diff --cached --quiet || git commit -m "Auto-update commit tracker: $SHA"
+          git push
