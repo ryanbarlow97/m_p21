@@ -12,28 +12,22 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Install SQLite
-        run: sudo apt-get install sqlite3 -y
+        with:
+          fetch-depth: 0  # full history for git show
 
       - name: Extract commit info and update database
         run: |
-          set -e  # Stop on error
+          set -e
 
           DB="commits_log.sqlite"
           SHA=$(git rev-parse HEAD)
           AUTHOR=$(git log -1 --format="%an")
           EMAIL=$(git log -1 --format="%ae")
           DATE=$(git log -1 --format="%ad" --date=iso)
-          FILES=$(git diff-tree --no-commit-id --name-only -r $SHA | paste -sd ";" -)
+          FILES=$(git show --pretty="" --name-only $SHA | paste -sd ";" -)
 
-          echo "SHA=$SHA"
-          echo "Author=$AUTHOR"
-          echo "Email=$EMAIL"
-          echo "Date=$DATE"
-          echo "Files=$FILES"
+          echo "Files changed: $FILES"
 
-          # Always ensure the table exists, even if the DB already does
           sqlite3 "$DB" "CREATE TABLE IF NOT EXISTS commits (
             sha TEXT PRIMARY KEY,
             author TEXT,
@@ -42,14 +36,12 @@ jobs:
             files TEXT
           );"
 
-          # Skip empty commits (e.g., merge commits with no changed files)
           if [ -z "$FILES" ]; then
             echo "No files changed — skipping insert."
             exit 0
           fi
 
-          echo "Inserting commit row..."
-          sqlite3 "$DB" "INSERT OR IGNORE INTO commits
+          sqlite3 "$DB" "REPLACE INTO commits
             (sha, author, email, timestamp, files)
             VALUES (
               '$SHA',
