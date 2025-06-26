@@ -18,6 +18,8 @@ jobs:
 
       - name: Extract commit info and update database
         run: |
+          set -e  # Stop on error
+
           DB="commits_log.sqlite"
           SHA=$(git rev-parse HEAD)
           AUTHOR=$(git log -1 --format="%an")
@@ -25,12 +27,33 @@ jobs:
           DATE=$(git log -1 --format="%ad" --date=iso)
           FILES=$(git diff-tree --no-commit-id --name-only -r $SHA | paste -sd ";" -)
 
+          echo "SHA=$SHA"
+          echo "Author=$AUTHOR"
+          echo "Email=$EMAIL"
+          echo "Date=$DATE"
+          echo "Files=$FILES"
+
           if [ ! -f "$DB" ]; then
-            sqlite3 "$DB" "CREATE TABLE commits (sha TEXT PRIMARY KEY, author TEXT, email TEXT, timestamp TEXT, files TEXT);"
+            echo "Creating database and table..."
+            sqlite3 "$DB" "CREATE TABLE IF NOT EXISTS commits (
+              sha TEXT PRIMARY KEY,
+              author TEXT,
+              email TEXT,
+              timestamp TEXT,
+              files TEXT
+            );"
           fi
 
-          sqlite3 "$DB" "INSERT OR IGNORE INTO commits (sha, author, email, timestamp, files) \
-                         VALUES ('$SHA', '$AUTHOR', '$EMAIL', '$DATE', '$FILES');"
+          echo "Inserting commit row..."
+          sqlite3 "$DB" "INSERT OR IGNORE INTO commits
+            (sha, author, email, timestamp, files)
+            VALUES (
+              '$SHA',
+              '$AUTHOR',
+              '$EMAIL',
+              '$DATE',
+              '$FILES'
+            );"
 
       - name: Commit updated SQLite file
         run: |
