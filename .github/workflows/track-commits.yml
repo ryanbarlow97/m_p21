@@ -18,18 +18,18 @@ jobs:
 
       - name: Extract commit info and update database
         run: |
-          DB=commits_log.sqlite
-          FILES=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} | paste -sd ";" -)
+          DB="commits_log.sqlite"
+          SHA=$(git rev-parse HEAD)
           AUTHOR=$(git log -1 --format="%an")
           EMAIL=$(git log -1 --format="%ae")
           DATE=$(git log -1 --format="%ad" --date=iso)
-          SHA=$(git rev-parse HEAD)
+          FILES=$(git diff-tree --no-commit-id --name-only -r $SHA | paste -sd ";" -)
 
           if [ ! -f "$DB" ]; then
-            sqlite3 $DB "CREATE TABLE commits (sha TEXT PRIMARY KEY, author TEXT, email TEXT, timestamp TEXT, files TEXT);"
+            sqlite3 "$DB" "CREATE TABLE commits (sha TEXT PRIMARY KEY, author TEXT, email TEXT, timestamp TEXT, files TEXT);"
           fi
 
-          sqlite3 $DB <<EOF
+          sqlite3 "$DB" <<EOF
 INSERT OR IGNORE INTO commits (sha, author, email, timestamp, files)
 VALUES (
   '$SHA',
